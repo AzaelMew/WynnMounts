@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mount Stat Calculator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
+<meta property="og:title" content="Mount Stat Calculator">
+<meta property="og:description" content="Optimize your Wynncraft mount training — get the perfect shopping list of materials to max your mount's stats.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#6e9e5f">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page-layout">
+<div class="container">
+  <div class="title-row">
+    <h1>🐴 Mount Stat Calculator</h1>
+    <div class="mount-potential"><span class="mount-potential-label">Potential</span><span id="mount-potential-display">240</span></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-bar-tabs">
+      <button class="tab-btn active" data-tab="calc">Feeding Calculator</button>
+      <button class="tab-btn" data-tab="breeding">Breeding Calculator</button>
+    </div>
+    <div class="tier-selector" id="train-mode-selector" style="border:none;align-self:center">
+      <button class="tier-btn train-mode-btn active" data-mode="normal">Max Training</button>
+      <button class="tier-btn train-mode-btn" data-mode="less-training">Less Training</button>
+      <button class="tier-btn train-mode-btn" data-mode="no-training">No Training</button>
+    </div>
+    <input type="checkbox" id="chk-no-train" style="display:none">
+  </div>
+
+  <!-- ── Tab: Stat Calculator ── -->
+  <div class="tab-panel" id="tab-calc">
+    <p class="subtitle">Enter your mount's stats, then click Calculate to get the optimal shopping list.</p>
+
+    <div class="calc-wrap">
+      <table id="calc-table">
+        <thead>
+          <tr>
+            <th>Stat</th>
+            <th>Current Level</th>
+            <th>Current Level Limit</th>
+            <th>Max Level</th>
+            <th>Points Still Needed</th>
+            <th>% Complete</th>
+          </tr>
+        </thead>
+        <tbody id="stat-rows"></tbody>
+        <tfoot>
+          <tr class="avg-row">
+            <td class="stat-name">Highest Current Level</td>
+            <td colspan="5"><span id="avg-display">—</span><button id="btn-import" type="button" data-tooltip="Import stats via Wynnmod">Import</button></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="btn-row">
+      <button id="btn-calc">Calculate Optimal Shopping List</button>
+      <button id="btn-clear">Reset to Defaults</button>
+    </div>
+
+    <div id="results">
+      <div class="results-title">🛒 Optimal Shopping List</div>
+      <div class="result-table-wrap">
+        <table id="result-table">
+          <thead>
+            <tr>
+              <th style="text-align:left">Material</th>
+              <th style="text-align:left">Raises</th>
+              <th>Feeds to Buy</th>
+              <th>Total Pts Added</th>
+              <th>Fed</th>
+            </tr>
+          </thead>
+          <tbody id="result-body">
+            <tr id="loading-row" style="display:none">
+              <td colspan="5" class="loading-cell"><span class="spinner"></span>Calculating…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="warn-row"><div class="warn-box" id="warn-text"></div></div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Multi-Gen Breeding ── -->
+  <div class="tab-panel" id="tab-breeding" style="display:none">
+    <div class="roadmap-section">
+      <div class="results-title">🐎 Multi-Generation Breeding Roadmap <span style="font-size:0.6em;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:2px 6px;vertical-align:middle;letter-spacing:0.08em;">BETA</span></div>
+      <p style="color:var(--muted);font-size:0.8rem;font-style:italic;margin-bottom:12px;">The math is probably wrong, but it's close enough.</p>
+      <div class="roadmap-controls">
+        <label class="roadmap-label">
+          Current horse potential:
+          <input type="number" class="rm-input" id="inp-cur-pot" value="240" min="240" max="9999">
+        </label>
+        <label class="roadmap-label">
+          Target Potential:
+          <input type="number" class="rm-input" id="inp-target-pot" value="1180" min="200" max="9999">
+        </label>
+        <label class="roadmap-label">
+          Account Tier:
+          <div class="tier-selector" id="tier-selector">
+            <button class="tier-btn active" data-slots="3">Normal</button>
+            <button class="tier-btn" data-slots="4">Hero+</button>
+            <button class="tier-btn" data-slots="5">Champion</button>
+          </div>
+        </label>
+      </div>
+      <div class="result-table-wrap">
+        <table class="roadmap-table">
+          <thead>
+            <tr>
+              <th>Breeding Step</th>
+              <th style="text-align:left">Action</th>
+              <th>Result Max Limit</th>
+              <th>Step Time / Feeds</th>
+            </tr>
+          </thead>
+          <tbody id="roadmap-body">
+            <tr><td colspan="4" style="color:var(--muted);padding:16px;text-align:center;font-style:italic;">Enter your current horse potential and target to see the roadmap.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="tip-banner"></div>
+    </div>
+  </div>
+
+</div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">🐴 Saved Mounts</span>
+    </div>
+    <div class="sidebar-save-row">
+      <input type="text" id="inp-mount-name" class="mount-name-input" placeholder="Name this mount…" maxlength="32">
+      <button id="btn-save-mount" class="btn-save-mount">Save</button>
+    </div>
+    <div id="saved-mounts-list" class="saved-mounts-list"></div>
+  </aside>
+</div>
+
+<footer style="text-align:center;margin-top:48px;color:var(--muted);font-size:0.82rem;">
+  Join The Guild today! &nbsp;<code style="background:var(--input-bg);padding:2px 7px;border-radius:4px;color:var(--accent2);">/gu join TGLD</code>
+</footer>
+
+<script type="module" src="ui.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"95e23996cfdb47668fb3b9570a18dae8","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eacd63a2f340250',t:'MTc3NTk0MDM0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
