@@ -442,21 +442,42 @@
     position: sticky;
     top: 24px;
   }
-  .sidebar-header { margin-bottom: 12px; }
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
   .sidebar-title {
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--accent2);
   }
-  .sidebar-save-row {
+  .btn-sidebar-save {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-sidebar-save:hover { filter: brightness(1.15); }
+  .new-save-form {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 12px;
-  }
-  .mount-name-input {
-    width: 100%;
+    margin-bottom: 8px;
+    padding: 8px;
     background: var(--input-bg);
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+  }
+  .new-save-form input {
+    width: 100%;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
@@ -464,21 +485,47 @@
     font-size: 0.82rem;
     outline: none;
     font-family: inherit;
+    box-sizing: border-box;
   }
-  .mount-name-input:focus { border-color: var(--accent); }
-  .btn-save-mount {
-    width: 100%;
+  .new-save-form input:focus { border-color: var(--accent); }
+  .new-save-btns { display: flex; gap: 6px; }
+  .btn-new-save-confirm {
+    flex: 1;
     background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 4px;
-    padding: 6px 10px;
-    font-size: 0.82rem;
+    padding: 5px;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
   }
-  .btn-save-mount:hover { filter: brightness(1.15); }
+  .btn-new-save-confirm:hover { filter: brightness(1.15); }
+  .btn-new-save-cancel {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-new-save-cancel:hover { color: #e06060; border-color: #e06060; }
+  .mount-name-edit {
+    background: var(--input-bg);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    color: var(--text);
+    padding: 2px 5px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+  }
   .saved-mounts-list { display: flex; flex-direction: column; gap: 6px; }
   .saved-mounts-empty {
     color: var(--muted);
@@ -508,7 +555,7 @@
     color: var(--muted);
   }
   .saved-mount-actions { display: flex; gap: 4px; }
-  .btn-load-mount {
+  .btn-apply-mount {
     flex: 1;
     background: var(--header-bg);
     color: var(--accent2);
@@ -520,7 +567,9 @@
     cursor: pointer;
     font-family: inherit;
   }
-  .btn-load-mount:hover { filter: brightness(1.2); }
+  .btn-apply-mount:hover { filter: brightness(1.2); }
+  .btn-resave-mount,
+  .btn-rename-mount,
   .btn-del-mount {
     background: transparent;
     color: var(--muted);
@@ -531,9 +580,11 @@
     cursor: pointer;
     font-family: inherit;
   }
+  .btn-resave-mount:hover { color: var(--accent2); border-color: var(--accent2); }
+  .btn-rename-mount:hover { color: var(--accent2); border-color: var(--accent2); }
   .btn-del-mount:hover { color: #e06060; border-color: #e06060; }
   .saved-mount-active { border-color: var(--accent) !important; }
-  .saved-mount-active .btn-load-mount { background: var(--accent); color: #fff; cursor: default; }
+  .saved-mount-active .btn-apply-mount { background: var(--accent); color: #fff; cursor: default; }
 
   @media (max-width: 700px) {
     .page-layout { flex-direction: column; }
