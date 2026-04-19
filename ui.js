@@ -24,6 +24,7 @@ const LS_MOUNTS_KEY = "wynnmounts_mounts";
 
 let fedItems = new Set();
 let activeMountName = null; // null = no named mount loaded
+let _lastImportedName = '';
 
 function saveFedItems() {
   if (activeMountName === null) return; // no mount active, nothing to persist
@@ -107,6 +108,19 @@ function deleteMountProfile(name) {
   renderSavedMounts();
 }
 
+function renameMountProfile(oldName, newName) {
+  if (!newName || newName === oldName) return;
+  const mounts = loadMounts();
+  if (!mounts[oldName]) return;
+  const rebuilt = {};
+  for (const [k, v] of Object.entries(mounts)) {
+    rebuilt[k === oldName ? newName : k] = v;
+  }
+  saveMounts(rebuilt);
+  if (activeMountName === oldName) activeMountName = newName;
+  renderSavedMounts();
+}
+
 function renderSavedMounts() {
   const list = document.getElementById('saved-mounts-list');
   if (!list) return;
@@ -126,8 +140,10 @@ function renderSavedMounts() {
         <span class="saved-mount-pot">${pot} pot</span>
       </div>
       <div class="saved-mount-actions">
-        <button class="btn-load-mount" data-name="${escaped}">${isActive ? 'Active' : 'Load'}</button>
-        <button class="btn-del-mount" data-name="${escaped}">✕</button>
+        <button class="btn-apply-mount" data-name="${escaped}">${isActive ? 'Active' : 'Apply'}</button>
+        <button class="btn-resave-mount" data-name="${escaped}" title="Re-save current stats">↺</button>
+        <button class="btn-rename-mount" data-name="${escaped}" title="Rename">✎</button>
+        <button class="btn-del-mount" data-name="${escaped}" title="Delete">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -523,21 +539,11 @@ async function importFromClipboard() {
     document.getElementById('inp-cur-pot').value = data.potential;
   }
 
+  _lastImportedName = typeof data?.name === 'string' ? data.name.trim() : '';
+
   updateDerived();
   runSolver();
   renderRoadmap();
-
-  const importedName = typeof data?.name === 'string' ? data.name.trim() : '';
-  if (importedName) {
-    const mounts = loadMounts();
-    let saveName = importedName;
-    if (mounts[saveName]) {
-      let n = 2;
-      while (mounts[`${importedName} ${n}`]) n++;
-      saveName = `${importedName} ${n}`;
-    }
-    saveMountProfile(saveName);
-  }
 }
 
 // ─── Import button tooltip ────────────────────────────────────────────────────
@@ -614,23 +620,84 @@ document.getElementById('result-body').addEventListener('change', (e) => {
 
 // ─── Sidebar event listeners ──────────────────────────────────────────────────
 
-document.getElementById('btn-save-mount').addEventListener('click', () => {
-  const inp = document.getElementById('inp-mount-name');
-  const name = inp.value.trim();
-  if (!name) { inp.focus(); return; }
-  saveMountProfile(name);
-  inp.value = '';
-});
+function showNewSaveForm() {
+  const list = document.getElementById('saved-mounts-list');
+  const existing = list.querySelector('.new-save-form');
+  if (existing) { existing.querySelector('input').focus(); return; }
 
-document.getElementById('inp-mount-name').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('btn-save-mount').click();
-});
+  const form = document.createElement('div');
+  form.className = 'new-save-form';
+  const pre = _lastImportedName.replace(/"/g, '&quot;');
+  form.innerHTML = `
+    <input type="text" placeholder="Name this mount…" maxlength="32" value="${pre}">
+    <div class="new-save-btns">
+      <button class="btn-new-save-confirm">Save</button>
+      <button class="btn-new-save-cancel">✕</button>
+    </div>
+  `;
+  list.insertBefore(form, list.firstChild);
+  const input = form.querySelector('input');
+  input.focus();
+  input.select();
+
+  const confirm = () => {
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    saveMountProfile(name);
+    _lastImportedName = '';
+    form.remove();
+  };
+  const cancel = () => form.remove();
+
+  form.querySelector('.btn-new-save-confirm').addEventListener('click', confirm);
+  form.querySelector('.btn-new-save-cancel').addEventListener('click', cancel);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirm();
+    if (e.key === 'Escape') cancel();
+  });
+}
+
+document.getElementById('btn-save-mount').addEventListener('click', showNewSaveForm);
 
 document.getElementById('saved-mounts-list').addEventListener('click', (e) => {
-  const loadBtn = e.target.closest('.btn-load-mount');
-  const delBtn  = e.target.closest('.btn-del-mount');
-  if (loadBtn) loadMountProfile(loadBtn.dataset.name);
-  if (delBtn)  deleteMountProfile(delBtn.dataset.name);
+  const applyBtn  = e.target.closest('.btn-apply-mount');
+  const resaveBtn = e.target.closest('.btn-resave-mount');
+  const renameBtn = e.target.closest('.btn-rename-mount');
+  const delBtn    = e.target.closest('.btn-del-mount');
+
+  if (applyBtn)  { loadMountProfile(applyBtn.dataset.name); return; }
+  if (resaveBtn) { saveMountProfile(resaveBtn.dataset.name); return; }
+  if (delBtn)    { deleteMountProfile(delBtn.dataset.name); return; }
+
+  if (renameBtn) {
+    const item     = renameBtn.closest('.saved-mount-item');
+    const nameSpan = item.querySelector('.saved-mount-name');
+    const oldName  = renameBtn.dataset.name;
+
+    const input = document.createElement('input');
+    input.type      = 'text';
+    input.className = 'mount-name-edit';
+    input.value     = oldName;
+    input.maxLength = 32;
+    nameSpan.replaceWith(input);
+    renameBtn.style.display = 'none';
+    input.focus();
+    input.select();
+
+    const confirm = () => {
+      const newName = input.value.trim();
+      if (newName && newName !== oldName) {
+        renameMountProfile(oldName, newName);
+      } else {
+        renderSavedMounts();
+      }
+    };
+    input.addEventListener('blur', confirm);
+    input.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') input.blur();
+      if (ev.key === 'Escape') { ev.preventDefault(); renderSavedMounts(); }
+    });
+  }
 });
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
