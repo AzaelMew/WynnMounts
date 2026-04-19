@@ -141,7 +141,7 @@ function renderSavedMounts() {
       </div>
       <div class="saved-mount-actions">
         <button class="btn-apply-mount" data-name="${escaped}">${isActive ? 'Active' : 'Apply'}</button>
-        <button class="btn-resave-mount" data-name="${escaped}" title="Re-save current stats">↺</button>
+        <button class="btn-resave-mount" data-name="${escaped}" title="Re-save current stats">💾</button>
         <button class="btn-rename-mount" data-name="${escaped}" title="Rename">✎</button>
         <button class="btn-del-mount" data-name="${escaped}" title="Delete">✕</button>
       </div>
