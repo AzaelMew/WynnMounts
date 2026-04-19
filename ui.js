@@ -180,7 +180,12 @@ function updateDerived() {
     const pct  = max > 0 ? Math.round((cur / max) * 100) : 0;
 
     document.getElementById(`need-${i}`).textContent = (max || lim) ? need : "—";
-    document.getElementById(`pct-${i}`).textContent  = max ? pct + "%" : "—";
+    const pctEl = document.getElementById(`pct-${i}`);
+    if (max) {
+      pctEl.innerHTML = `<div class="stat-progress"><div class="stat-progress-bar" style="width:${pct}%"></div><span class="stat-progress-text">${pct}%</span></div>`;
+    } else {
+      pctEl.textContent = "—";
+    }
   }
   const avg = Math.max(...Array.from({length: 8}, (_, i) => parseFloat(document.getElementById(`cur-${i}`).value) || 0));
   document.getElementById("avg-display").textContent = avg;
