@@ -254,7 +254,7 @@ input[type=number] { -moz-appearance: textfield; }
   position: absolute;
   left: 0; top: 0;
   height: 100%;
-  background: linear-gradient(to right, #3a6028, var(--green));
+  background: linear-gradient(to right, #0d3a52, var(--gold));
   transition: width 0.35s ease;
   border-radius: 3px;
 }
