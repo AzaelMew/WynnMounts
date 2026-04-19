@@ -526,6 +526,18 @@ async function importFromClipboard() {
   updateDerived();
   runSolver();
   renderRoadmap();
+
+  const importedName = typeof data?.name === 'string' ? data.name.trim() : '';
+  if (importedName) {
+    const mounts = loadMounts();
+    let saveName = importedName;
+    if (mounts[saveName]) {
+      let n = 2;
+      while (mounts[`${importedName} ${n}`]) n++;
+      saveName = `${importedName} ${n}`;
+    }
+    saveMountProfile(saveName);
+  }
 }
 
 // ─── Import button tooltip ────────────────────────────────────────────────────
