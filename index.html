@@ -3,13 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mount Stat Calculator</title>
+<title>WynnMounts — Mount Stat Calculator</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
-<meta property="og:title" content="Mount Stat Calculator">
+<meta property="og:title" content="WynnMounts — Mount Stat Calculator">
 <meta property="og:description" content="Optimize your Wynncraft mount training — get the perfect shopping list of materials to max your mount's stats.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#6e9e5f">
+<meta name="theme-color" content="#c8973a">
 <meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -42,11 +45,11 @@
         <thead>
           <tr>
             <th>Stat</th>
-            <th>Current Level</th>
-            <th>Current Level Limit</th>
-            <th>Max Level</th>
-            <th>Points Still Needed</th>
-            <th>% Complete</th>
+            <th>Level</th>
+            <th>Limit</th>
+            <th>Max</th>
+            <th>Needed</th>
+            <th>Progress</th>
           </tr>
         </thead>
         <tbody id="stat-rows"></tbody>
@@ -141,8 +144,8 @@
   </aside>
 </div>
 
-<footer style="text-align:center;margin-top:48px;color:var(--muted);font-size:0.82rem;">
-  Join The Guild today! &nbsp;<code style="background:var(--input-bg);padding:2px 7px;border-radius:4px;color:var(--accent2);">/gu join TGLD</code>
+<footer>
+  Join The Guild today! &nbsp;<code>/gu join TGLD</code>
 </footer>
 
 <script type="module" src="ui.js"></script>
