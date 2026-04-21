@@ -290,13 +290,14 @@ function calculateOptimalList() {
     return;
   }
 
-  const rawH = Math.max(...rawCur);
-  let   effH = Math.max(...effCur);
+  const rawH    = Math.max(...rawCur);
+  let   effH    = Math.max(...effCur);
+  const tierCap = playerLevelCap !== null ? maxUsableTier(playerLevelCap) : null;
   if (playerLevelCap !== null) {
     targetH = Math.min(targetH, playerLevelCap);
     effH    = Math.min(effH, playerLevelCap);
   }
-  const rawTier = maxUsableTier(rawH);
+  const rawTier = tierCap !== null ? tierCap : maxUsableTier(rawH);
   const effTier = maxUsableTier(effH);
 
   if (Math.max(rawTier, effTier) === -1) {
@@ -309,11 +310,11 @@ function calculateOptimalList() {
   // 'less-training' → allow next-tier-only unlocks; also try effCur (train to existing limit)
   // 'normal'        → full optimizer: try all tier jumps + multi-tier from scratch
   const maxLevels = statData.map(s => s.max);
-  const planBase  = runOptimizer(rawCur, remaining, targetH, mode, maxLevels);
+  const planBase  = runOptimizer(rawCur, remaining, targetH, mode, maxLevels, tierCap);
   const trainHelps = mode !== 'no-training' && effH > rawH && effTier > rawTier;
-  const planTrain  = trainHelps ? runOptimizer(effCur, remaining, targetH, mode, maxLevels) : null;
+  const planTrain  = trainHelps ? runOptimizer(effCur, remaining, targetH, mode, maxLevels, tierCap) : null;
   const planMultiTier = mode === 'normal' && rawTier > 1
-    ? runOptimizer(Array(8).fill(1), remaining, targetH, 'normal', maxLevels)
+    ? runOptimizer(Array(8).fill(1), remaining, targetH, 'normal', maxLevels, tierCap)
     : null;
 
   const allPlans = [planBase, planTrain, planMultiTier].filter(p => p !== null);

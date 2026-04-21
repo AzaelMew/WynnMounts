@@ -202,7 +202,7 @@ export function solveTier(cands, needed) {
 // mode: 'normal'        → try all higher tiers as unlock targets
 //       'less-training' → only try the immediately next tier (one step at a time)
 //       'no-training'   → no unlocks at all
-export function runOptimizer(startLevels, remaining, targetH, mode = 'normal', maxLevels = null) {
+export function runOptimizer(startLevels, remaining, targetH, mode = 'normal', maxLevels = null, tierCap = null) {
   const phases     = [];
   const unsolvable = new Set();
   let curLevels    = [...startLevels];
@@ -211,7 +211,7 @@ export function runOptimizer(startLevels, remaining, targetH, mode = 'normal', m
 
   while (remaining.some(r => r > 0) && safety++ < 30) {
     const H = Math.max(...curLevels);
-    const curTier = maxUsableTier(H);
+    const curTier = tierCap !== null ? tierCap : maxUsableTier(H);
     if (curTier === -1) break;
     const cands = candsSorted(curTier);
 
