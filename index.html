@@ -28,10 +28,17 @@
       <button class="tab-btn active" data-tab="calc">Feeding Calculator</button>
       <button class="tab-btn" data-tab="breeding">Breeding Calculator</button>
     </div>
-    <div class="tier-selector" id="train-mode-selector" style="border:none;align-self:center">
-      <button class="tier-btn train-mode-btn active" data-mode="normal">Max Training</button>
-      <button class="tier-btn train-mode-btn" data-mode="less-training">Less Training</button>
-      <button class="tier-btn train-mode-btn" data-mode="no-training">No Training</button>
+    <div class="tab-bar-right">
+      <div class="tier-selector" id="train-mode-selector" style="border:none;align-self:center">
+        <button class="tier-btn train-mode-btn active" data-mode="normal">Max Training</button>
+        <button class="tier-btn train-mode-btn" data-mode="less-training">Less Training</button>
+        <button class="tier-btn train-mode-btn" data-mode="no-training">No Training</button>
+      </div>
+      <label class="level-cap-label" id="level-cap-label">
+        <input type="checkbox" id="chk-level-cap">
+        <span class="level-cap-text">Lv cap:</span>
+        <input type="number" id="inp-level-cap" class="level-cap-input" min="1" max="115" value="105" disabled>
+      </label>
     </div>
     <input type="checkbox" id="chk-no-train" style="display:none">
   </div>

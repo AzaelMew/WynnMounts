@@ -218,6 +218,12 @@ document.querySelectorAll('.train-mode-btn').forEach(btn => {
   });
 });
 
+document.getElementById('chk-level-cap').addEventListener('change', (e) => {
+  document.getElementById('inp-level-cap').disabled = !e.target.checked;
+  runSolver();
+});
+document.getElementById('inp-level-cap').addEventListener('input', runSolver);
+
 // ─── localStorage ─────────────────────────────────────────────────────────────
 
 function saveToStorage() {
@@ -274,7 +280,10 @@ function calculateOptimalList() {
   const rawCur    = statData.map(s => s.cur);
   const effCur    = statData.map(s => Math.max(s.cur, Math.min(s.lim, s.max)));
   const remaining = statData.map(s => Math.max(s.max - s.lim, 0));
-  const targetH   = Math.max(...statData.map(s => s.max));
+  let   targetH   = Math.max(...statData.map(s => s.max));
+
+  const levelCapEnabled = document.getElementById('chk-level-cap')?.checked;
+  const playerLevelCap  = levelCapEnabled ? (parseInt(document.getElementById('inp-level-cap')?.value) || 115) : null;
 
   if (remaining.every(r => r === 0)) {
     resultBody.innerHTML = `<tr><td colspan="5" class="no-materials">All stats already at max level.</td></tr>`;
@@ -282,7 +291,11 @@ function calculateOptimalList() {
   }
 
   const rawH = Math.max(...rawCur);
-  const effH = Math.max(...effCur);
+  let   effH = Math.max(...effCur);
+  if (playerLevelCap !== null) {
+    targetH = Math.min(targetH, playerLevelCap);
+    effH    = Math.min(effH, playerLevelCap);
+  }
   const rawTier = maxUsableTier(rawH);
   const effTier = maxUsableTier(effH);
 
