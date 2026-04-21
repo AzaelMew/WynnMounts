@@ -211,7 +211,7 @@ export function runOptimizer(startLevels, remaining, targetH, mode = 'normal', m
 
   while (remaining.some(r => r > 0) && safety++ < 30) {
     const H = Math.max(...curLevels);
-    const curTier = tierCap !== null ? tierCap : maxUsableTier(H);
+    const curTier = tierCap !== null ? Math.min(tierCap, maxUsableTier(H)) : maxUsableTier(H);
     if (curTier === -1) break;
     const cands = candsSorted(curTier);
 
