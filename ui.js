@@ -297,7 +297,7 @@ function calculateOptimalList() {
     targetH = Math.min(targetH, playerLevelCap);
     effH    = Math.min(effH, playerLevelCap);
   }
-  const rawTier = tierCap !== null ? tierCap : maxUsableTier(rawH);
+  const rawTier = tierCap !== null ? Math.min(tierCap, maxUsableTier(rawH)) : maxUsableTier(rawH);
   const effTier = maxUsableTier(effH);
 
   if (Math.max(rawTier, effTier) === -1) {
