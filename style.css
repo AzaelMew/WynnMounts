@@ -250,7 +250,8 @@ input[type=number] { -moz-appearance: textfield; }
 .avg-row .stat-name { color: var(--muted); font-weight: 400; font-style: italic; }
 #avg-display { font-weight: 700; color: var(--accent2); }
 
-#btn-import {
+#btn-import,
+.btn-est-import {
   float: right;
   padding: 3px 9px;
   font-size: 0.72rem;
@@ -264,7 +265,8 @@ input[type=number] { -moz-appearance: textfield; }
   transform: none !important;
   transition: filter 0.15s;
 }
-#btn-import:hover { filter: brightness(1.15); }
+#btn-import:hover,
+.btn-est-import:hover { filter: brightness(1.15); }
 
 #import-tooltip {
   position: fixed;

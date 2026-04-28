@@ -500,76 +500,117 @@ function runSolver() {
   }, 0));
 }
 
-// ─── Import from clipboard ────────────────────────────────────────────────────
+// ─── Import helpers ───────────────────────────────────────────────────────────
 
-// eslint-disable-next-line no-unused-vars
-async function importFromClipboard() {
+const statKeyMap = {
+  Speed: 'speed',
+  Acceleration: 'acceleration',
+  Altitude: 'altitude',
+  Energy: 'energy',
+  Handling: 'handling',
+  Toughness: 'toughness',
+  Boost: 'boost',
+  Training: 'training',
+};
+
+async function readClipboardOrPrompt() {
   let text = '';
-  try {
-    text = await navigator.clipboard.readText();
-  } catch {}
+  try { text = await navigator.clipboard.readText(); } catch {}
+  if (!text) text = window.prompt('Paste your horse JSON here:') ?? '';
+  return text.trim();
+}
 
-  if (!text) {
-    text = window.prompt('Paste your horse JSON here:') ?? '';
-  }
-  if (!text.trim()) return;
-
+function parseHorseJson(text) {
   let data;
   try { data = JSON.parse(text); } catch {
-    alert("Import failed: pasted text is not valid JSON.");
-    return;
+    throw new Error('Import failed: pasted text is not valid JSON.');
   }
 
   if (data?.type && typeof data.type !== 'string') {
-    alert('Invalid format: "type" must be a string when provided.');
-    return;
+    throw new Error('Invalid format: "type" must be a string when provided.');
   }
 
   const s = data?.stats;
   if (!s || typeof s !== 'object') {
-    alert("Invalid format: missing \"stats\" object.");
-    return;
+    throw new Error('Invalid format: missing "stats" object.');
   }
-
-  const statKeyMap = {
-    Speed: 'speed',
-    Acceleration: 'acceleration',
-    Altitude: 'altitude',
-    Energy: 'energy',
-    Handling: 'handling',
-    Toughness: 'toughness',
-    Boost: 'boost',
-    Training: 'training',
-  };
 
   for (let i = 0; i < STATS.length; i++) {
     const entry = s[STATS[i]] ?? s[statKeyMap[STATS[i]]];
     if (!entry || typeof entry !== 'object') {
-      alert(`Invalid format: missing stat "${STATS[i]}".`);
-      return;
+      throw new Error(`Invalid format: missing stat "${STATS[i]}".`);
     }
     const hasLegacyShape = 'Level' in entry && 'Limit' in entry && 'Max' in entry;
     const hasHorseShape = 'value' in entry && 'limit' in entry && 'maxValue' in entry;
     if (!hasLegacyShape && !hasHorseShape) {
-      alert(`Invalid format: stat "${STATS[i]}" missing value/limit/maxValue.`);
-      return;
+      throw new Error(`Invalid format: stat "${STATS[i]}" missing value/limit/maxValue.`);
     }
   }
 
+  const parsed = { name: typeof data?.name === 'string' ? data.name.trim() : '' };
   for (let i = 0; i < STATS.length; i++) {
     const entry = s[STATS[i]] ?? s[statKeyMap[STATS[i]]];
-    const cur = entry.Level ?? entry.value ?? 0;
-    const lim = entry.Limit ?? entry.limit ?? 0;
-    const max = entry.Max ?? entry.maxValue ?? 0;
-    document.getElementById(`cur-${i}`).value = cur;
-    document.getElementById(`lim-${i}`).value = lim;
-    document.getElementById(`max-${i}`).value = max;
+    parsed[`cur-${i}`] = entry.Level ?? entry.value ?? 0;
+    parsed[`lim-${i}`] = entry.Limit ?? entry.limit ?? 0;
+    parsed[`max-${i}`] = entry.Max ?? entry.maxValue ?? 0;
   }
 
-  _lastImportedName = typeof data?.name === 'string' ? data.name.trim() : '';
+  // Energy bar (best-effort)
+  parsed.energy_value = data?.energy_value ?? data?.energy?.value ?? null;
+  parsed.energy_max   = data?.energy_max   ?? data?.energy?.max   ?? null;
 
+  return parsed;
+}
+
+// ─── Import: Feeding Calculator ───────────────────────────────────────────────
+
+// eslint-disable-next-line no-unused-vars
+async function importFromClipboard() {
+  const text = await readClipboardOrPrompt();
+  if (!text) return;
+
+  let parsed;
+  try { parsed = parseHorseJson(text); } catch (e) {
+    alert(e.message);
+    return;
+  }
+
+  for (let i = 0; i < STATS.length; i++) {
+    document.getElementById(`cur-${i}`).value = parsed[`cur-${i}`];
+    document.getElementById(`lim-${i}`).value = parsed[`lim-${i}`];
+    document.getElementById(`max-${i}`).value = parsed[`max-${i}`];
+  }
+
+  _lastImportedName = parsed.name;
   updateDerived();
   runSolver();
+}
+
+// ─── Import: Breeding Estimator ───────────────────────────────────────────────
+
+async function importToEstimator(prefix) {
+  const text = await readClipboardOrPrompt();
+  if (!text) return;
+
+  let parsed;
+  try { parsed = parseHorseJson(text); } catch (e) {
+    alert(e.message);
+    return;
+  }
+
+  for (let i = 0; i < STATS.length; i++) {
+    const safe = STATS[i].toLowerCase().replace(/\s+/g, '-');
+    document.getElementById(`est-${prefix}-${safe}-val`).value = parsed[`cur-${i}`];
+    document.getElementById(`est-${prefix}-${safe}-lim`).value = parsed[`lim-${i}`];
+    document.getElementById(`est-${prefix}-${safe}-max`).value = parsed[`max-${i}`];
+  }
+
+  if (parsed.energy_value != null) {
+    document.getElementById(`est-${prefix}-energy-val`).value = parsed.energy_value;
+  }
+  if (parsed.energy_max != null) {
+    document.getElementById(`est-${prefix}-energy-max`).value = parsed.energy_max;
+  }
 }
 
 // ─── Import button tooltip ────────────────────────────────────────────────────
@@ -611,6 +652,10 @@ document.getElementById("btn-calc").addEventListener("click", () => { runSolver(
 
 document.getElementById('btn-simulate').addEventListener('click', runEstimator);
 document.getElementById('btn-copy-a-to-b').addEventListener('click', copyParentAToB);
+
+document.querySelectorAll('.btn-est-import').forEach(btn => {
+  btn.addEventListener('click', () => importToEstimator(btn.dataset.parent));
+});
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
