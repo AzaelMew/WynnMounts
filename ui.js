@@ -49,7 +49,7 @@ function saveMounts(mounts) {
   try { localStorage.setItem(LS_MOUNTS_KEY, JSON.stringify(mounts)); } catch {}
 }
 
-function saveMountProfile(name) {
+function saveMountProfile(name, type) {
   const mounts = loadMounts();
   const stats = [];
   for (let i = 0; i < 8; i++) {
@@ -59,10 +59,12 @@ function saveMountProfile(name) {
       max: document.getElementById(`max-${i}`).value,
     });
   }
-  // preserve existing fedItems if overwriting same profile
+  // preserve existing fedItems and type if overwriting same profile
   const existing = mounts[name];
+  const mountType = type || existing?.type || 'horse';
   mounts[name] = {
     stats,
+    type: mountType,
     fedItems: activeMountName === name ? [...fedItems] : (existing?.fedItems ?? []),
   };
   saveMounts(mounts);
@@ -112,31 +114,46 @@ function renameMountProfile(oldName, newName) {
 }
 
 function renderSavedMounts() {
-  const list = document.getElementById('saved-mounts-list');
-  if (!list) return;
+  const horsesList = document.getElementById('saved-horses-list');
+  const wyvernsList = document.getElementById('saved-wyverns-list');
+  const adasaursList = document.getElementById('saved-adasaurs-list');
+  if (!horsesList || !wyvernsList || !adasaursList) return;
+
   const mounts = loadMounts();
-  const names = Object.keys(mounts);
-  if (names.length === 0) {
-    list.innerHTML = '<div class="saved-mounts-empty">No saved mounts yet.</div>';
-    return;
+  const byType = { horse: [], wyvern: [], adasaur: [] };
+
+  for (const name of Object.keys(mounts)) {
+    const type = mounts[name].type || 'horse';
+    (byType[type] ||= []).push(name);
   }
-  list.innerHTML = names.map(name => {
-    const escaped = name.replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    const pot = mounts[name].stats.reduce((s, st) => s + (parseFloat(st.max) || 0), 0);
-    const isActive = name === activeMountName;
-    return `<div class="saved-mount-item${isActive ? ' saved-mount-active' : ''}">
-      <div class="saved-mount-info">
-        <span class="saved-mount-name">${escaped}</span>
-        <span class="saved-mount-pot">${pot} pot</span>
-      </div>
-      <div class="saved-mount-actions">
-        <button class="btn-apply-mount" data-name="${escaped}">${isActive ? 'Active' : 'Apply'}</button>
-        <button class="btn-resave-mount" data-name="${escaped}" title="Re-save current stats">💾</button>
-        <button class="btn-rename-mount" data-name="${escaped}" title="Rename">✎</button>
-        <button class="btn-del-mount" data-name="${escaped}" title="Delete">✕</button>
-      </div>
-    </div>`;
-  }).join('');
+
+  function renderList(listEl, names) {
+    if (names.length === 0) {
+      listEl.innerHTML = '<div class="saved-mounts-empty">No saved mounts yet.</div>';
+      return;
+    }
+    listEl.innerHTML = names.map(name => {
+      const escaped = name.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const pot = mounts[name].stats.reduce((s, st) => s + (parseFloat(st.max) || 0), 0);
+      const isActive = name === activeMountName;
+      return `<div class="saved-mount-item${isActive ? ' saved-mount-active' : ''}">
+        <div class="saved-mount-info">
+          <span class="saved-mount-name">${escaped}</span>
+          <span class="saved-mount-pot">${pot} pot</span>
+        </div>
+        <div class="saved-mount-actions">
+          <button class="btn-apply-mount" data-name="${escaped}">${isActive ? 'Active' : 'Apply'}</button>
+          <button class="btn-resave-mount" data-name="${escaped}" title="Re-save current stats">💾</button>
+          <button class="btn-rename-mount" data-name="${escaped}" title="Rename">✎</button>
+          <button class="btn-del-mount" data-name="${escaped}" title="Delete">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  renderList(horsesList, byType.horse);
+  renderList(wyvernsList, byType.wyvern);
+  renderList(adasaursList, byType.adasaur);
 }
 
 // ─── Build input rows ─────────────────────────────────────────────────────────
@@ -682,11 +699,11 @@ document.getElementById('result-body').addEventListener('change', (e) => {
   if (row) row.classList.toggle('row-fed', e.target.checked);
 });
 
-// ─── Sidebar event listeners ──────────────────────────────────────────────────
+// ─── Saved mounts panel event listeners ───────────────────────────────────────
 
 function showNewSaveForm() {
-  const list = document.getElementById('saved-mounts-list');
-  const existing = list.querySelector('.new-save-form');
+  const panel = document.querySelector('.saved-mounts-panel');
+  const existing = panel.querySelector('.new-save-form');
   if (existing) { existing.querySelector('input').focus(); return; }
 
   const form = document.createElement('div');
@@ -694,12 +711,17 @@ function showNewSaveForm() {
   const pre = _lastImportedName.replace(/"/g, '&quot;');
   form.innerHTML = `
     <input type="text" placeholder="Name this mount…" maxlength="32" value="${pre}">
+    <select class="mount-type-select">
+      <option value="horse">🐴 Horse</option>
+      <option value="wyvern">🐉 Wyvern</option>
+      <option value="adasaur">🦖 Adasaur</option>
+    </select>
     <div class="new-save-btns">
       <button class="btn-new-save-confirm">Save</button>
       <button class="btn-new-save-cancel">✕</button>
     </div>
   `;
-  list.insertBefore(form, list.firstChild);
+  panel.insertBefore(form, panel.querySelector('.saved-mounts-columns'));
   const input = form.querySelector('input');
   input.focus();
   input.select();
@@ -707,7 +729,8 @@ function showNewSaveForm() {
   const confirm = () => {
     const name = input.value.trim();
     if (!name) { input.focus(); return; }
-    saveMountProfile(name);
+    const type = form.querySelector('.mount-type-select').value;
+    saveMountProfile(name, type);
     _lastImportedName = '';
     form.remove();
   };
@@ -723,7 +746,7 @@ function showNewSaveForm() {
 
 document.getElementById('btn-save-mount').addEventListener('click', showNewSaveForm);
 
-document.getElementById('saved-mounts-list').addEventListener('click', (e) => {
+document.querySelector('.saved-mounts-panel').addEventListener('click', (e) => {
   const applyBtn  = e.target.closest('.btn-apply-mount');
   const resaveBtn = e.target.closest('.btn-resave-mount');
   const renameBtn = e.target.closest('.btn-rename-mount');
