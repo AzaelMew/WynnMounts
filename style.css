@@ -24,6 +24,9 @@ body {
   padding: 24px 16px 48px;
   line-height: 1.6;
 }
+@media (min-width: 1440px) {
+  body { padding-right: 500px; }
+}
 
 .page-layout {
   max-width: 860px;
@@ -633,20 +636,13 @@ button:active { transform: scale(0.97); }
   cursor: default;
 }
 
-@media (max-width: 1359px) {
+@media (max-width: 1439px) {
   .sidebar {
     position: static;
     width: 100%;
     max-height: none;
     overflow-y: visible;
     margin-top: 40px;
-  }
-}
-
-@media (min-width: 1360px) {
-  .page-layout {
-    margin-right: 500px;
-    margin-left: auto;
   }
 }
 
