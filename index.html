@@ -26,7 +26,7 @@
   <div class="tab-bar">
     <div class="tab-bar-tabs">
       <button class="tab-btn active" data-tab="calc">Feeding Calculator</button>
-      <button class="tab-btn" data-tab="breeding">Breeding Calculator</button>
+      <button class="tab-btn" data-tab="breeding">Breeding Estimator</button>
     </div>
     <div class="tab-bar-right">
       <div class="tier-selector" id="train-mode-selector" style="border:none;align-self:center">
@@ -98,45 +98,61 @@
     </div>
   </div>
 
-  <!-- ── Tab: Multi-Gen Breeding ── -->
+  <!-- ── Tab: Breeding Estimator ── -->
   <div class="tab-panel" id="tab-breeding" style="display:none">
-    <div class="roadmap-section">
-      <div class="results-title">🐎 Multi-Generation Breeding Roadmap <span style="font-size:0.6em;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:2px 6px;vertical-align:middle;letter-spacing:0.08em;">BETA</span></div>
-      <p style="color:var(--muted);font-size:0.8rem;font-style:italic;margin-bottom:12px;">The math is probably wrong, but it's close enough.</p>
-      <div class="roadmap-controls">
-        <label class="roadmap-label">
-          Current horse potential:
-          <input type="number" class="rm-input" id="inp-cur-pot" value="240" min="240" max="9999">
-        </label>
-        <label class="roadmap-label">
-          Target Potential:
-          <input type="number" class="rm-input" id="inp-target-pot" value="1180" min="200" max="9999">
-        </label>
-        <label class="roadmap-label">
-          Account Tier:
-          <div class="tier-selector" id="tier-selector">
-            <button class="tier-btn active" data-slots="3">Normal</button>
-            <button class="tier-btn" data-slots="4">Hero+</button>
-            <button class="tier-btn" data-slots="5">Champion</button>
-          </div>
-        </label>
-      </div>
-      <div class="result-table-wrap">
-        <table class="roadmap-table">
+    <p class="subtitle">Enter two parent mounts to estimate offspring stat ranges via Monte Carlo simulation.</p>
+
+    <div class="estimator-layout">
+      <div class="estimator-parent">
+        <div class="estimator-parent-header">Parent A</div>
+        <table class="estimator-input-table">
           <thead>
-            <tr>
-              <th>Breeding Step</th>
-              <th style="text-align:left">Action</th>
-              <th>Result Max Limit</th>
-              <th>Step Time / Feeds</th>
-            </tr>
+            <tr><th>Stat</th><th>Val</th><th>Lim</th><th>Max</th></tr>
           </thead>
-          <tbody id="roadmap-body">
-            <tr><td colspan="4" style="color:var(--muted);padding:16px;text-align:center;font-style:italic;">Enter your current horse potential and target to see the roadmap.</td></tr>
-          </tbody>
+          <tbody id="est-a-rows"></tbody>
+        </table>
+        <div class="estimator-energy">
+          <label>Energy Value <input type="number" id="est-a-energy-val" value="191" min="0"></label>
+          <label>Energy Max <input type="number" id="est-a-energy-max" value="259" min="0"></label>
+        </div>
+      </div>
+
+      <div class="estimator-parent">
+        <div class="estimator-parent-header">Parent B</div>
+        <table class="estimator-input-table">
+          <thead>
+            <tr><th>Stat</th><th>Val</th><th>Lim</th><th>Max</th></tr>
+          </thead>
+          <tbody id="est-b-rows"></tbody>
+        </table>
+        <div class="estimator-energy">
+          <label>Energy Value <input type="number" id="est-b-energy-val" value="191" min="0"></label>
+          <label>Energy Max <input type="number" id="est-b-energy-max" value="259" min="0"></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="estimator-actions">
+      <button id="btn-simulate">Simulate Breeding</button>
+      <button id="btn-copy-a-to-b" class="btn-secondary">Copy A → B</button>
+      <label class="estimator-runs">
+        Runs:
+        <input type="number" id="est-runs" value="5000" min="100" max="50000" step="500">
+      </label>
+    </div>
+
+    <div id="estimator-results" style="display:none">
+      <div class="results-title">📊 Predicted Offspring</div>
+      <div class="estimator-potential" id="est-potential-display"></div>
+      <div class="result-table-wrap">
+        <table class="estimator-results-table">
+          <thead>
+            <tr><th>Stat</th><th>Field</th><th>Min</th><th>Max</th><th>Mean</th><th>SD</th></tr>
+          </thead>
+          <tbody id="est-results-body"></tbody>
         </table>
       </div>
-      <div id="tip-banner"></div>
+      <p class="estimator-note">Ranges show min/max across all simulations. Most offspring cluster near the mean. Model derived from 35+ real breeding submissions.</p>
     </div>
   </div>
 

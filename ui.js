@@ -1,9 +1,6 @@
 import { MATERIALS, STATS } from './data.js';
 import { maxUsableTier, runOptimizer } from './solver.js';
-import {
-  computeBreedingDP, findBestDP, traceBreedPath,
-  breedFeedCostGen0, breedFeedCostGenN, breedFeedsGenN, fmtH,
-} from './breeding.js';
+import { simulateMany, summarizeDistribution, EST_KEYS } from './estimator.js';
 
 const LS_KEY        = "wynnmounts_stats";
 const LS_MOUNTS_KEY = "wynnmounts_mounts";
@@ -66,7 +63,6 @@ function saveMountProfile(name) {
   const existing = mounts[name];
   mounts[name] = {
     stats,
-    tierSlots: document.querySelector('#tier-selector .tier-btn.active')?.dataset.slots ?? '3',
     fedItems: activeMountName === name ? [...fedItems] : (existing?.fedItems ?? []),
   };
   saveMounts(mounts);
@@ -84,16 +80,10 @@ function loadMountProfile(name) {
     document.getElementById(`lim-${i}`).value = s.lim;
     document.getElementById(`max-${i}`).value = s.max;
   });
-  if (profile.tierSlots != null) {
-    document.querySelectorAll('#tier-selector .tier-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.slots === profile.tierSlots);
-    });
-  }
   activeMountName = name;
   fedItems = new Set(profile.fedItems ?? []);
   updateDerived();
   runSolver();
-  renderRoadmap();
   renderSavedMounts();
 }
 
@@ -214,7 +204,6 @@ document.querySelectorAll('.train-mode-btn').forEach(btn => {
     setTrainMode(btn.dataset.mode);
     saveToStorage();
     runSolver();
-    renderRoadmap();
   });
 });
 
@@ -233,8 +222,7 @@ function saveToStorage() {
     data[`lim-${i}`] = document.getElementById(`lim-${i}`).value;
     data[`max-${i}`] = document.getElementById(`max-${i}`).value;
   }
-  data.trainMode  = getTrainMode();
-  data.tierSlots  = document.querySelector('#tier-selector .tier-btn.active')?.dataset.slots ?? '3';
+  data.trainMode = getTrainMode();
   try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch {}
 }
 
@@ -249,11 +237,6 @@ function loadFromStorage() {
       if (data[`max-${i}`] != null) document.getElementById(`max-${i}`).value = data[`max-${i}`];
     }
     setTrainMode(data.trainMode ?? (data.noTraining ? 'no-training' : 'normal'));
-    if (data.tierSlots  != null) {
-      document.querySelectorAll('#tier-selector .tier-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.slots === data.tierSlots);
-      });
-    }
   } catch {}
   updateDerived();
 }
@@ -378,103 +361,124 @@ function calculateOptimalList() {
   }
 }
 
-// ─── Multi-Gen Breeding Roadmap renderer ─────────────────────────────────────
+// ─── Breeding Estimator ───────────────────────────────────────────────────────
 
-function renderRoadmap() {
-  const targetPot  = parseInt(document.getElementById('inp-target-pot').value) || 1180;
-  const curPot     = parseInt(document.getElementById('inp-cur-pot').value) || 0;
-  const noTrain    = document.getElementById('chk-no-train').checked;
-  const tierSlots  = parseInt(document.querySelector('#tier-selector .tier-btn.active')?.dataset.slots ?? '3');
-  const parallelPairs = tierSlots;
-  const fallbackLvl = Math.max(1, Math.floor(curPot / 8));
+function buildEstimatorRows() {
+  const tbodyA = document.getElementById('est-a-rows');
+  const tbodyB = document.getElementById('est-b-rows');
+  if (!tbodyA || !tbodyB) return;
 
-  const dp   = computeBreedingDP(!noTrain, fallbackLvl);
-  const best = findBestDP(dp, targetPot);
-  const body = document.getElementById('roadmap-body');
-  const tip  = document.getElementById('tip-banner');
+  STATS.forEach((stat, i) => {
+    const safe = stat.toLowerCase().replace(/\s+/g, '-');
+    const trA = document.createElement('tr');
+    trA.innerHTML = `
+      <td class="stat-name">${stat}</td>
+      <td><input type="number" min="0" id="est-a-${safe}-val" value="1"></td>
+      <td><input type="number" min="0" id="est-a-${safe}-lim" value="10"></td>
+      <td><input type="number" min="0" id="est-a-${safe}-max" value="30"></td>
+    `;
+    tbodyA.appendChild(trA);
 
-  if (!best) {
-    body.innerHTML = `<tr><td colspan="4" style="color:var(--muted);padding:16px;text-align:center;font-style:italic;">No viable path found for target ${targetPot}.</td></tr>`;
-    tip.innerHTML = '';
-    return;
-  }
-
-  const path = traceBreedPath(dp, best);
-  let html = '';
-  const stepHoursArr = [];
-
-  let currentStepIndex = -1;
-  if (curPot > 0) {
-    currentStepIndex = path.findIndex(s => s.M_curr * 8 > curPot);
-  }
-
-  for (let i = 0; i < path.length; i++) {
-    const step = path[i];
-    const noFeed    = step.L_prev <= step.base;
-    const lvl       = !noTrain ? step.M_prev : fallbackLvl;
-    const isCurrent = i === currentStepIndex;
-
-    let action;
-    if (step.isGen1) {
-      action = noFeed
-        ? `Feed base parents to minimum (avg limit 20), then breed`
-        : `Feed base parents to avg limit <b>${step.L_prev}</b> each, then breed`;
-    } else if (noFeed) {
-      action = `<b>Don't feed</b> — breed your current horses immediately`;
-    } else {
-      action = `Feed parents to avg limit <b>${step.L_prev}</b>, then breed two`;
-    }
-
-    const stepHours = step.isGen1
-      ? 2 * breedFeedCostGen0(step.L_prev) + 6
-      : 2 * breedFeedCostGenN(step.base, step.L_prev, lvl) + 6;
-    const stepFeeds = step.isGen1 ? '—' :
-      (2 * breedFeedsGenN(step.base, step.L_prev, lvl)) + ' feeds';
-    stepHoursArr.push(stepHours);
-
-    const cls = isCurrent ? 'gen-step-current' : '';
-    html += `<tr class="${cls}">
-      <td>${isCurrent ? '⭐ Your next step' : `Breed step ${step.gen}`}</td>
-      <td>${action}</td>
-      <td>${step.M_curr * 8} pot</td>
-      <td>${fmtH(stepHours)}<br><span style="color:var(--muted);font-size:0.8em">${stepFeeds}</span></td>
-    </tr>`;
-  }
-
-  const P = path.length;
-  let parallelElapsed = 0;
-  stepHoursArr.forEach((sh, i) => {
-    parallelElapsed += Math.ceil(Math.pow(2, P - 1 - i) / parallelPairs) * sh;
+    const trB = document.createElement('tr');
+    trB.innerHTML = `
+      <td class="stat-name">${stat}</td>
+      <td><input type="number" min="0" id="est-b-${safe}-val" value="1"></td>
+      <td><input type="number" min="0" id="est-b-${safe}-lim" value="10"></td>
+      <td><input type="number" min="0" id="est-b-${safe}-max" value="30"></td>
+    `;
+    tbodyB.appendChild(trB);
   });
+}
 
-  const totalCost = dp[best.gen][best.M].cost;
-  const totalHorses = Math.pow(2, path.length);
-  const stepsRemaining = currentStepIndex >= 0 ? path.length - currentStepIndex : path.length;
-  const remainingHorses = Math.pow(2, stepsRemaining);
-  const horseNote = curPot > 0 && currentStepIndex > 0
-    ? `<b>${remainingHorses}</b> more base horses needed from your current point (<b>${totalHorses}</b> total from scratch)`
-    : `<b>${totalHorses}</b> base horses needed total`;
-  html += `<tr class="roadmap-total">
-    <td colspan="4">Full tree from scratch: <b>~${fmtH(parallelElapsed)}</b> real elapsed — reaching ~${best.M * 8} potential<br><span style="font-weight:400;font-size:0.85em;opacity:0.85">🐴 ${horseNote}</span></td>
-  </tr>`;
-  body.innerHTML = html;
-
-  // Time Saved tip — only shown when "Ignore Training" is checked
-  if (noTrain) {
-    const dpT  = computeBreedingDP(true, fallbackLvl);
-    const bestT = findBestDP(dpT, targetPot);
-    if (bestT) {
-      const savedHours = totalCost - dpT[bestT.gen][bestT.M].cost;
-      if (savedHours > 0.09) {
-        const feedsSaved = Math.round(savedHours / 6);
-        const curStep    = path.find(s => currentStepIndex < 0 || (curPot / 8) < s.M_curr);
-        const trainToLvl = curStep ? curStep.M_prev : Math.ceil(targetPot / 8);
-        tip.innerHTML = `<div class="tip-box">💡 If you train your horse to Level <b>${trainToLvl}</b>, you will save approximately <b>${feedsSaved} total feeds</b> (<b>${fmtH(savedHours)}</b> of passive wait time) across the full breeding tree.</div>`;
-        return;
-      }
-    }
+function readEstimatorParent(prefix) {
+  const parent = {};
+  for (let i = 0; i < STATS.length; i++) {
+    const key = EST_KEYS[i];
+    const safe = STATS[i].toLowerCase().replace(/\s+/g, '-');
+    parent[`${key}_val`] = parseFloat(document.getElementById(`${prefix}-${safe}-val`).value) || 0;
+    parent[`${key}_lim`] = parseFloat(document.getElementById(`${prefix}-${safe}-lim`).value) || 0;
+    parent[`${key}_max`] = parseFloat(document.getElementById(`${prefix}-${safe}-max`).value) || 0;
   }
-  tip.innerHTML = '';
+  parent.energy_value = parseFloat(document.getElementById(`${prefix}-energy-val`).value) || 0;
+  parent.energy_max   = parseFloat(document.getElementById(`${prefix}-energy-max`).value) || 0;
+  return parent;
+}
+
+function runEstimator() {
+  const runs = parseInt(document.getElementById('est-runs').value) || 5000;
+  const parentA = readEstimatorParent('est-a');
+  const parentB = readEstimatorParent('est-b');
+
+  const resultsDiv = document.getElementById('estimator-results');
+  const body       = document.getElementById('est-results-body');
+  const potDisplay = document.getElementById('est-potential-display');
+
+  body.innerHTML = '<tr><td colspan="6" class="loading-cell"><span class="spinner"></span>Running Monte Carlo simulation…</td></tr>';
+  resultsDiv.style.display = 'block';
+
+  requestAnimationFrame(() => setTimeout(() => {
+    const t0 = performance.now();
+    const sims = simulateMany(parentA, parentB, runs);
+
+    const pot = summarizeDistribution(sims.potential);
+    potDisplay.innerHTML = `
+      <span class="est-pot-label">Potential</span>
+      <span class="est-pot-range">${pot.min} – ${pot.max}</span>
+      <span class="est-pot-mean">mean ${pot.mean} · SD ${pot.sd}</span>
+    `;
+
+    let html = '';
+    const fields = [
+      { label: 'Speed',         key: 'speed',      show: ['max', 'lim'] },
+      { label: 'Acceleration',  key: 'accel',      show: ['max', 'lim'] },
+      { label: 'Altitude',      key: 'altitude',   show: ['max', 'lim'] },
+      { label: 'Energy',        key: 'energy_stat',show: ['max', 'lim'] },
+      { label: 'Handling',      key: 'handling',   show: ['max', 'lim'] },
+      { label: 'Toughness',     key: 'toughness',  show: ['max', 'lim'] },
+      { label: 'Boost',         key: 'boost',      show: ['max', 'lim'] },
+      { label: 'Training',      key: 'training',   show: ['max', 'lim'] },
+    ];
+
+    fields.forEach((f, idx) => {
+      f.show.forEach((field, fidx) => {
+        const dist = summarizeDistribution(sims[`${f.key}_${field}`]);
+        const cls = fidx === 0 ? 'est-row-group-start' : 'est-row-group-mid';
+        const label = fidx === 0 ? f.label : '';
+        html += `<tr class="${cls}">
+          <td>${label}</td>
+          <td>${field}</td>
+          <td>${dist.min}</td>
+          <td>${dist.max}</td>
+          <td>${dist.mean}</td>
+          <td>${dist.sd}</td>
+        </tr>`;
+      });
+    });
+
+    // Energy bar
+    const emDist = summarizeDistribution(sims.energy_max);
+    const evDist = summarizeDistribution(sims.energy_value);
+    html += `<tr class="est-row-group-start">
+      <td>Energy bar</td><td>max</td><td>${emDist.min}</td><td>${emDist.max}</td><td>${emDist.mean}</td><td>${emDist.sd}</td>
+    </tr>`;
+    html += `<tr class="est-row-group-mid">
+      <td></td><td>value</td><td>${evDist.min}</td><td>${evDist.max}</td><td>${evDist.mean}</td><td>${evDist.sd}</td>
+    </tr>`;
+
+    body.innerHTML = html;
+    console.log(`[estimator] ${(performance.now() - t0).toFixed(1)}ms for ${runs} runs`);
+  }, 0));
+}
+
+function copyParentAToB() {
+  for (let i = 0; i < STATS.length; i++) {
+    const safe = STATS[i].toLowerCase().replace(/\s+/g, '-');
+    document.getElementById(`est-b-${safe}-val`).value = document.getElementById(`est-a-${safe}-val`).value;
+    document.getElementById(`est-b-${safe}-lim`).value = document.getElementById(`est-a-${safe}-lim`).value;
+    document.getElementById(`est-b-${safe}-max`).value = document.getElementById(`est-a-${safe}-max`).value;
+  }
+  document.getElementById('est-b-energy-val').value = document.getElementById('est-a-energy-val').value;
+  document.getElementById('est-b-energy-max').value = document.getElementById('est-a-energy-max').value;
 }
 
 // ─── Async runner: shows spinner then defers solver so browser can paint ──────
@@ -557,15 +561,10 @@ async function importFromClipboard() {
     document.getElementById(`max-${i}`).value = max;
   }
 
-  if (Number.isFinite(data?.potential)) {
-    document.getElementById('inp-cur-pot').value = data.potential;
-  }
-
   _lastImportedName = typeof data?.name === 'string' ? data.name.trim() : '';
 
   updateDerived();
   runSolver();
-  renderRoadmap();
 }
 
 // ─── Import button tooltip ────────────────────────────────────────────────────
@@ -603,19 +602,10 @@ document.getElementById("btn-clear").addEventListener("click", () => {
 
 document.getElementById("btn-calc").addEventListener("click", () => { runSolver(); });
 
-// ─── Roadmap event listeners ──────────────────────────────────────────────────
+// ─── Estimator event listeners ────────────────────────────────────────────────
 
-document.getElementById('inp-cur-pot').addEventListener('input', renderRoadmap);
-document.getElementById('inp-target-pot').addEventListener('input', renderRoadmap);
-
-document.querySelectorAll('#tier-selector .tier-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#tier-selector .tier-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    saveToStorage();
-    renderRoadmap();
-  });
-});
+document.getElementById('btn-simulate').addEventListener('click', runEstimator);
+document.getElementById('btn-copy-a-to-b').addEventListener('click', copyParentAToB);
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
@@ -625,7 +615,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
-    if (btn.dataset.tab === 'breeding') renderRoadmap();
+    if (btn.dataset.tab === 'breeding') {
+      // Estimator runs on-demand via Simulate button
+    }
   });
 });
 
@@ -724,6 +716,7 @@ document.getElementById('saved-mounts-list').addEventListener('click', (e) => {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
+buildEstimatorRows();
 loadFromStorage();
 renderSavedMounts();
 runSolver();
