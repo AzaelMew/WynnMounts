@@ -547,18 +547,6 @@ button:active { transform: scale(0.97); }
   transition: color 0.15s, border-color 0.15s;
 }
 .btn-new-save-cancel:hover { color: #e06060; border-color: #e06060; }
-.btn-new-save-import {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  padding: 5px 8px;
-  font-size: 0.74rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: color 0.15s, border-color 0.15s;
-}
-.btn-new-save-import:hover { color: var(--accent2); border-color: var(--accent); }
 
 .mount-name-edit {
   background: var(--input-bg);
