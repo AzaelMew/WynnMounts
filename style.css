@@ -29,10 +29,10 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  max-width: 1260px;
+  max-width: 1340px;
   margin: 0 auto;
 }
-.container { flex: 1; min-width: 0; }
+.container { flex: 1; min-width: 0; max-width: 860px; }
 
 /* ─── Header ─── */
 .title-row {
@@ -634,7 +634,7 @@ button:active { transform: scale(0.97); }
   cursor: default;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .page-layout { flex-direction: column; }
   .sidebar { width: 100%; position: static; }
 }
