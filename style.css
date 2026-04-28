@@ -28,8 +28,8 @@ body {
 .page-layout {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  max-width: 1260px;
+  gap: 40px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 .container { flex: 1; min-width: 0; }
@@ -38,6 +38,7 @@ body {
 .title-row {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
   margin-bottom: 4px;
