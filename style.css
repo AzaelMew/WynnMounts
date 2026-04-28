@@ -597,8 +597,8 @@ button:active { transform: scale(0.97); }
   flex: 1;
   background: transparent;
   color: var(--accent2);
-  border: none;
-  border-radius: 0;
+  border: 1px solid var(--accent2);
+  border-radius: 4px;
   padding: 2px 4px;
   font-size: 0.72rem;
   font-weight: 600;
@@ -634,7 +634,7 @@ button:active { transform: scale(0.97); }
 }
 
 /* smooth shift: padding-right grows as viewport narrows to keep sidebar from overlapping */
-body { padding-right: clamp(16px, calc(1856px - 100vw), 492px); }
+body { padding-right: clamp(16px, calc(1890px - 100vw), 492px); }
 
 @media (max-width: 800px) {
   body { padding-right: 16px; }

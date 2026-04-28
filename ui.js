@@ -22,6 +22,7 @@ const LS_MOUNTS_KEY = "wynnmounts_mounts";
 let fedItems = new Set();
 let activeMountName = null; // null = no named mount loaded
 let _lastImportedName = '';
+let _lastImportedType = '';
 
 function saveFedItems() {
   if (activeMountName === null) return; // no mount active, nothing to persist
@@ -564,7 +565,7 @@ function parseHorseJson(text) {
     }
   }
 
-  const parsed = { name: typeof data?.name === 'string' ? data.name.trim() : '' };
+  const parsed = { name: typeof data?.name === 'string' ? data.name.trim() : '', type: typeof data?.type === 'string' ? data.type : '' };
   for (let i = 0; i < STATS.length; i++) {
     const entry = s[STATS[i]] ?? s[statKeyMap[STATS[i]]];
     parsed[`cur-${i}`] = entry.Level ?? entry.value ?? 0;
@@ -599,6 +600,7 @@ async function importFromClipboard() {
   }
 
   _lastImportedName = parsed.name;
+  _lastImportedType = parsed.type;
   updateDerived();
   runSolver();
 }
@@ -722,6 +724,8 @@ function showNewSaveForm() {
     </div>
   `;
   sidebar.insertBefore(form, sidebar.querySelector('.saved-mounts-columns'));
+  const preselectType = (activeMountName && loadMounts()[activeMountName]?.type) || _lastImportedType;
+  if (preselectType) form.querySelector('.mount-type-select').value = preselectType;
   const input = form.querySelector('input');
   input.focus();
   input.select();
@@ -732,6 +736,7 @@ function showNewSaveForm() {
     const type = form.querySelector('.mount-type-select').value;
     saveMountProfile(name, type);
     _lastImportedName = '';
+    _lastImportedType = '';
     form.remove();
   };
   const cancel = () => form.remove();
