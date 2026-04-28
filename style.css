@@ -438,8 +438,8 @@ button:active { transform: scale(0.97); }
   flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 0;
+  padding: 0;
   position: sticky;
   top: 24px;
 }
@@ -447,21 +447,22 @@ button:active { transform: scale(0.97); }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
+  background: var(--header-bg);
+  padding: 10px 14px;
 }
 .sidebar-title {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--accent2);
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .btn-sidebar-save {
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  padding: 5px 10px;
+  border-radius: 0;
+  padding: 5px 12px;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -473,17 +474,21 @@ button:active { transform: scale(0.97); }
 .saved-mounts-columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 0;
+  padding: 0;
 }
 .saved-mounts-column {
   min-width: 0;
+  border-right: 1px solid var(--border);
+  padding: 10px 12px;
 }
+.saved-mounts-column:last-child { border-right: none; }
 .saved-mounts-col-title {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-align: center;
   margin-bottom: 8px;
   padding-bottom: 6px;
@@ -494,18 +499,18 @@ button:active { transform: scale(0.97); }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 8px;
+  margin: 10px 14px 0;
   padding: 8px;
   background: var(--input-bg);
   border: 1px solid var(--accent);
-  border-radius: 4px;
+  border-radius: 0;
 }
 .new-save-form input,
 .new-save-form select {
   width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   color: var(--text);
   padding: 5px 8px;
   font-size: 0.82rem;
@@ -521,7 +526,7 @@ button:active { transform: scale(0.97); }
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 5px;
   font-size: 0.74rem;
   font-weight: 700;
@@ -534,7 +539,7 @@ button:active { transform: scale(0.97); }
   background: transparent;
   color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   padding: 5px 8px;
   font-size: 0.74rem;
   cursor: pointer;
@@ -546,7 +551,7 @@ button:active { transform: scale(0.97); }
 .mount-name-edit {
   background: var(--input-bg);
   border: 1px solid var(--accent);
-  border-radius: 3px;
+  border-radius: 0;
   color: var(--text);
   padding: 2px 5px;
   font-size: 0.85rem;
@@ -566,11 +571,11 @@ button:active { transform: scale(0.97); }
   padding: 8px 0;
 }
 .saved-mount-item {
-  padding: 6px 4px;
+  padding: 5px 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 .saved-mount-item:last-child { border-bottom: none; }
 .saved-mount-item:hover { background: rgba(255,255,255,0.02); }
@@ -594,7 +599,7 @@ button:active { transform: scale(0.97); }
   background: transparent;
   color: var(--accent2);
   border: none;
-  border-radius: 3px;
+  border-radius: 0;
   padding: 2px 4px;
   font-size: 0.72rem;
   font-weight: 600;
@@ -609,7 +614,7 @@ button:active { transform: scale(0.97); }
   background: transparent;
   color: var(--muted);
   border: none;
-  border-radius: 3px;
+  border-radius: 0;
   padding: 2px 4px;
   font-size: 0.7rem;
   cursor: pointer;
@@ -619,6 +624,11 @@ button:active { transform: scale(0.97); }
 .btn-resave-mount:hover { color: var(--accent2); }
 .btn-rename-mount:hover { color: var(--text); }
 .btn-del-mount:hover { color: #e06060; }
+.saved-mount-active {
+  border-left: 2px solid var(--accent);
+  padding-left: 4px;
+  margin-left: -6px;
+}
 .saved-mount-active .btn-apply-mount {
   color: var(--accent);
   cursor: default;
