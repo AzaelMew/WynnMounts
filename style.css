@@ -29,7 +29,7 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  max-width: 1240px;
+  max-width: 1260px;
   margin: 0 auto;
 }
 .container { flex: 1; min-width: 0; }
@@ -434,12 +434,12 @@ button:active { transform: scale(0.97); }
 
 /* ─── Sidebar ─── */
 .sidebar {
-  width: 340px;
+  width: 460px;
   flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 14px;
+  padding: 16px;
   position: sticky;
   top: 24px;
 }
@@ -473,18 +473,20 @@ button:active { transform: scale(0.97); }
 .saved-mounts-columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 .saved-mounts-column {
   min-width: 0;
 }
 .saved-mounts-col-title {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   text-align: center;
-  margin-bottom: 6px;
-  padding-bottom: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -555,7 +557,7 @@ button:active { transform: scale(0.97); }
   box-sizing: border-box;
 }
 
-.saved-mounts-list { display: flex; flex-direction: column; gap: 6px; }
+.saved-mounts-list { display: flex; flex-direction: column; gap: 8px; }
 .saved-mounts-empty {
   color: var(--muted);
   font-size: 0.78rem;
@@ -566,26 +568,26 @@ button:active { transform: scale(0.97); }
 .saved-mount-item {
   background: var(--input-bg);
   border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 7px 8px;
+  border-radius: 6px;
+  padding: 9px 10px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   transition: border-color 0.15s;
 }
-.saved-mount-item:hover { border-color: var(--border); }
-.saved-mount-info { display: flex; flex-direction: column; gap: 1px; }
-.saved-mount-name { font-size: 0.85rem; font-weight: 600; color: var(--text); word-break: break-word; }
-.saved-mount-pot { font-size: 0.72rem; color: var(--muted); }
-.saved-mount-actions { display: flex; gap: 4px; }
+.saved-mount-item:hover { border-color: var(--accent); }
+.saved-mount-info { display: flex; flex-direction: column; gap: 2px; }
+.saved-mount-name { font-size: 0.9rem; font-weight: 600; color: var(--text); word-break: break-word; }
+.saved-mount-pot { font-size: 0.78rem; color: var(--muted); }
+.saved-mount-actions { display: flex; gap: 5px; }
 .btn-apply-mount {
   flex: 1;
   background: var(--header-bg);
   color: var(--accent2);
   border: none;
   border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 0.75rem;
+  padding: 4px 8px;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -599,8 +601,8 @@ button:active { transform: scale(0.97); }
   color: var(--muted);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 0.72rem;
+  padding: 4px 8px;
+  font-size: 0.75rem;
   cursor: pointer;
   font-family: inherit;
   transition: color 0.15s, border-color 0.15s;
