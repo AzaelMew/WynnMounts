@@ -557,7 +557,7 @@ button:active { transform: scale(0.97); }
   box-sizing: border-box;
 }
 
-.saved-mounts-list { display: flex; flex-direction: column; gap: 8px; }
+.saved-mounts-list { display: flex; flex-direction: column; }
 .saved-mounts-empty {
   color: var(--muted);
   font-size: 0.78rem;
@@ -566,54 +566,61 @@ button:active { transform: scale(0.97); }
   padding: 8px 0;
 }
 .saved-mount-item {
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 9px 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  transition: border-color 0.15s;
+  gap: 3px;
 }
-.saved-mount-item:hover { border-color: var(--accent); }
-.saved-mount-info { display: flex; flex-direction: column; gap: 2px; }
-.saved-mount-name { font-size: 0.9rem; font-weight: 600; color: var(--text); word-break: break-word; }
-.saved-mount-pot { font-size: 0.78rem; color: var(--muted); }
-.saved-mount-actions { display: flex; gap: 5px; }
+.saved-mount-item:last-child { border-bottom: none; }
+.saved-mount-item:hover { background: rgba(255,255,255,0.02); }
+.saved-mount-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+.saved-mount-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-word;
+  min-width: 0;
+}
+.saved-mount-pot { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+.saved-mount-actions { display: flex; gap: 4px; }
 .btn-apply-mount {
   flex: 1;
-  background: var(--header-bg);
+  background: transparent;
   color: var(--accent2);
   border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 0.78rem;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: filter 0.15s;
+  transition: background 0.1s;
 }
-.btn-apply-mount:hover { filter: brightness(1.2); }
+.btn-apply-mount:hover { background: rgba(255,255,255,0.06); }
 .btn-resave-mount,
 .btn-rename-mount,
 .btn-del-mount {
   background: transparent;
   color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 0.75rem;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 0.7rem;
   cursor: pointer;
   font-family: inherit;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.1s;
 }
-.btn-resave-mount:hover { color: var(--accent2); border-color: var(--accent); }
-.btn-rename-mount:hover { color: var(--text); border-color: var(--border); filter: brightness(1.2); }
-.btn-del-mount:hover { color: #e06060; border-color: #e06060; }
-.saved-mount-active { border-color: var(--accent) !important; }
+.btn-resave-mount:hover { color: var(--accent2); }
+.btn-rename-mount:hover { color: var(--text); }
+.btn-del-mount:hover { color: #e06060; }
 .saved-mount-active .btn-apply-mount {
-  background: var(--accent);
-  color: #fff;
+  color: var(--accent);
   cursor: default;
 }
 
