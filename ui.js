@@ -311,7 +311,7 @@ function calculateOptimalList() {
   // 'normal'        → full optimizer: try all tier jumps + multi-tier from scratch
   const maxLevels = statData.map(s => s.max);
   const planBase  = runOptimizer(rawCur, remaining, targetH, mode, maxLevels, tierCap);
-  const trainHelps = mode !== 'no-training' && effH > rawH && effTier > rawTier;
+  const trainHelps = mode !== 'no-training' && effH > rawH;
   const planTrain  = trainHelps ? runOptimizer(effCur, remaining, targetH, mode, maxLevels, tierCap) : null;
   const planMultiTier = mode === 'normal' && rawTier > 1
     ? runOptimizer(Array(8).fill(1), remaining, targetH, 'normal', maxLevels, tierCap)
