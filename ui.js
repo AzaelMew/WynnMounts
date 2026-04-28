@@ -574,10 +574,20 @@ function parseHorseJson(text) {
 
   // Energy bar (best-effort)
   parsed.energy_value = data?.energy_value ?? data?.energy?.value ?? null;
-  parsed.energy_max   = data?.energy_max   ?? data?.energy?.max   ?? null;
+  parsed.energy_max   = data?.energy_max   ?? data?.energy?.maxValue ?? data?.energy?.max ?? null;
+
+  // Mount type
+  parsed.type = ['horse', 'wyvern', 'adasaur'].includes(data?.type) ? data.type : 'horse';
 
   return parsed;
 }
+
+function generateAutoName(type) {
+  const mounts = loadMounts();
+  const base = type.charAt(0).toUpperCase() + type.slice(1);
+  let n = 1;
+  while (mounts[`${base} ${n}`]) n++;
+  return `${base} ${n}`;
 
 // ─── Import: Feeding Calculator ───────────────────────────────────────────────
 
@@ -716,6 +726,7 @@ function showNewSaveForm() {
       <option value="wyvern">🐉 Wyvern</option>
       <option value="adasaur">🦖 Adasaur</option>
     </select>
+    <button class="btn-new-save-import" type="button">📋 Import JSON</button>
     <div class="new-save-btns">
       <button class="btn-new-save-confirm">Save</button>
       <button class="btn-new-save-cancel">✕</button>
@@ -736,8 +747,42 @@ function showNewSaveForm() {
   };
   const cancel = () => form.remove();
 
+  const doImport = async () => {
+    const text = await readClipboardOrPrompt();
+    if (!text) return;
+    let parsed;
+    try { parsed = parseHorseJson(text); } catch (e) {
+      alert(e.message);
+      return;
+    }
+
+    // Load stats into calculator
+    for (let i = 0; i < STATS.length; i++) {
+      document.getElementById(`cur-${i}`).value = parsed[`cur-${i}`];
+      document.getElementById(`lim-${i}`).value = parsed[`lim-${i}`];
+      document.getElementById(`max-${i}`).value = parsed[`max-${i}`];
+    }
+    if (parsed.energy_value != null) {
+      document.getElementById('est-a-energy-val').value = parsed.energy_value;
+      document.getElementById('est-b-energy-val').value = parsed.energy_value;
+    }
+    if (parsed.energy_max != null) {
+      document.getElementById('est-a-energy-max').value = parsed.energy_max;
+      document.getElementById('est-b-energy-max').value = parsed.energy_max;
+    }
+    updateDerived();
+    runSolver();
+
+    // Fill form fields
+    const name = parsed.name || generateAutoName(parsed.type);
+    input.value = name;
+    form.querySelector('.mount-type-select').value = parsed.type;
+    _lastImportedName = name;
+  };
+
   form.querySelector('.btn-new-save-confirm').addEventListener('click', confirm);
   form.querySelector('.btn-new-save-cancel').addEventListener('click', cancel);
+  form.querySelector('.btn-new-save-import').addEventListener('click', doImport);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') confirm();
     if (e.key === 'Escape') cancel();
