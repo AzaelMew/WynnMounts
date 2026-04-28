@@ -327,9 +327,12 @@ function calculateOptimalList() {
   const allPhases = [];
   if (useTrain) {
     const saved = planBase.grandTotal - planTrain.grandTotal;
-    const neededLevel = effTier;
+    const tierUnlock = effTier > rawTier;
+    const label = tierUnlock
+      ? `Train your mount to at least level ${effTier} first (saves ${saved} feed${saved === 1 ? '' : 's'})`
+      : `Train your stats to their current limits first (saves ${saved} feed${saved === 1 ? '' : 's'})`;
     allPhases.push({
-      label: `Train your mount to at least level ${neededLevel} first (saves ${saved} feed${saved === 1 ? '' : 's'})`,
+      label,
       feedCounts: {},
       totalFeeds: 0,
       isTraining: true,
