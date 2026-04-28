@@ -633,12 +633,9 @@ button:active { transform: scale(0.97); }
   cursor: default;
 }
 
-/* medium screens: shift content left instead of stacking sidebar */
-@media (max-width: 1919px) {
-  body { padding-right: 492px; }
-}
+/* smooth shift: padding-right grows as viewport narrows to keep sidebar from overlapping */
+body { padding-right: clamp(16px, calc(1820px - 100vw), 492px); }
 
-/* small screens: sidebar stacks below */
 @media (max-width: 800px) {
   body { padding-right: 16px; }
   .sidebar {
