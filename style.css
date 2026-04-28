@@ -26,10 +26,13 @@ body {
 }
 
 .page-layout {
-  max-width: 1080px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: 1240px;
   margin: 0 auto;
 }
-.container { max-width: 860px; margin: 0 auto; }
+.container { flex: 1; min-width: 0; }
 
 /* ─── Header ─── */
 .title-row {
@@ -429,15 +432,18 @@ button:active { transform: scale(0.97); }
 .toggle-label input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
 .toggle-label input:checked + .toggle-track .toggle-thumb { transform: translateX(16px); background: #fff; }
 
-/* ─── Saved Mounts Panel ─── */
-.saved-mounts-panel {
-  margin-top: 40px;
+/* ─── Sidebar ─── */
+.sidebar {
+  width: 340px;
+  flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
+  position: sticky;
+  top: 24px;
 }
-.saved-mounts-header {
+.sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -445,7 +451,7 @@ button:active { transform: scale(0.97); }
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
-.saved-mounts-title {
+.sidebar-title {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--accent2);
@@ -467,19 +473,18 @@ button:active { transform: scale(0.97); }
 .saved-mounts-columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 8px;
 }
 .saved-mounts-column {
   min-width: 0;
 }
 .saved-mounts-col-title {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  text-align: center;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -610,8 +615,9 @@ button:active { transform: scale(0.97); }
   cursor: default;
 }
 
-@media (max-width: 700px) {
-  .saved-mounts-columns { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .page-layout { flex-direction: column; }
+  .sidebar { width: 100%; position: static; }
 }
 
 /* ─── Fed column ─── */

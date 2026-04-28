@@ -702,8 +702,8 @@ document.getElementById('result-body').addEventListener('change', (e) => {
 // ─── Saved mounts panel event listeners ───────────────────────────────────────
 
 function showNewSaveForm() {
-  const panel = document.querySelector('.saved-mounts-panel');
-  const existing = panel.querySelector('.new-save-form');
+  const sidebar = document.getElementById('sidebar');
+  const existing = sidebar.querySelector('.new-save-form');
   if (existing) { existing.querySelector('input').focus(); return; }
 
   const form = document.createElement('div');
@@ -721,7 +721,7 @@ function showNewSaveForm() {
       <button class="btn-new-save-cancel">✕</button>
     </div>
   `;
-  panel.insertBefore(form, panel.querySelector('.saved-mounts-columns'));
+  sidebar.insertBefore(form, sidebar.querySelector('.saved-mounts-columns'));
   const input = form.querySelector('input');
   input.focus();
   input.select();
@@ -746,7 +746,7 @@ function showNewSaveForm() {
 
 document.getElementById('btn-save-mount').addEventListener('click', showNewSaveForm);
 
-document.querySelector('.saved-mounts-panel').addEventListener('click', (e) => {
+document.getElementById('sidebar').addEventListener('click', (e) => {
   const applyBtn  = e.target.closest('.btn-apply-mount');
   const resaveBtn = e.target.closest('.btn-resave-mount');
   const renameBtn = e.target.closest('.btn-rename-mount');
