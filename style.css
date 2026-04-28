@@ -26,13 +26,9 @@ body {
 }
 
 .page-layout {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  max-width: 1340px;
+  max-width: 860px;
   margin: 0 auto;
 }
-.container { flex: 1; min-width: 0; max-width: 860px; }
 
 /* ─── Header ─── */
 .title-row {
@@ -435,13 +431,16 @@ button:active { transform: scale(0.97); }
 /* ─── Sidebar ─── */
 .sidebar {
   width: 460px;
-  flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0;
   padding: 0;
-  position: sticky;
+  position: fixed;
+  right: 20px;
   top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  z-index: 10;
 }
 .sidebar-header {
   display: flex;
@@ -634,9 +633,21 @@ button:active { transform: scale(0.97); }
   cursor: default;
 }
 
-@media (max-width: 1000px) {
-  .page-layout { flex-direction: column; }
-  .sidebar { width: 100%; position: static; }
+@media (max-width: 1359px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
+    margin-top: 40px;
+  }
+}
+
+@media (min-width: 1360px) {
+  .page-layout {
+    margin-right: 500px;
+    margin-left: auto;
+  }
 }
 
 /* ─── Fed column ─── */
