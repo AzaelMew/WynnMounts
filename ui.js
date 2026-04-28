@@ -422,9 +422,14 @@ function runEstimator() {
 
     const pot = summarizeDistribution(sims.potential);
     potDisplay.innerHTML = `
-      <span class="est-pot-label">Potential</span>
-      <span class="est-pot-range">${pot.min} – ${pot.max}</span>
-      <span class="est-pot-mean">mean ${pot.mean} · SD ${pot.sd}</span>
+      <div class="est-pot-block">
+        <span class="est-pot-label">Minimum Potential</span>
+        <span class="est-pot-value">${pot.min}</span>
+      </div>
+      <div class="est-pot-block">
+        <span class="est-pot-label">Average Potential</span>
+        <span class="est-pot-value">${pot.mean}</span>
+      </div>
     `;
 
     let html = '';

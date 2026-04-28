@@ -300,11 +300,13 @@ button {
 }
 button:active { transform: scale(0.97); }
 
-#btn-calc {
+#btn-calc,
+#btn-simulate {
   background: var(--accent);
   color: #fff;
 }
-#btn-calc:hover { filter: brightness(1.15); }
+#btn-calc:hover,
+#btn-simulate:hover { filter: brightness(1.15); }
 
 #btn-clear {
   background: var(--input-bg);
@@ -722,8 +724,14 @@ footer code {
   padding: 16px 20px;
   margin-bottom: 16px;
   display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.est-pot-block {
+  display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  min-width: 120px;
 }
 .est-pot-label {
   font-size: 0.75rem;
@@ -732,14 +740,10 @@ footer code {
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-.est-pot-range {
+.est-pot-value {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--accent2);
-}
-.est-pot-mean {
-  font-size: 0.85rem;
-  color: var(--muted);
 }
 
 .estimator-results-table { width: 100%; border-collapse: collapse; }
