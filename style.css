@@ -633,7 +633,14 @@ button:active { transform: scale(0.97); }
   cursor: default;
 }
 
+/* medium screens: shift content left instead of stacking sidebar */
 @media (max-width: 1919px) {
+  body { padding-right: 492px; }
+}
+
+/* small screens: sidebar stacks below */
+@media (max-width: 800px) {
+  body { padding-right: 16px; }
   .sidebar {
     position: static;
     width: 100%;
