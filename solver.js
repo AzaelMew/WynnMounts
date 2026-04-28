@@ -101,6 +101,68 @@ function solveSingleStat(cands, statIdx, need) {
   return { feedCounts, totalFeeds: count, pointsAdded };
 }
 
+// ─── Multi-start greedy (construction heuristic) ─────────────────────────────
+// Builds a feasible solution bottom-up. Runs once unconstrained, then once with
+// each material forced as the first pick — returns the best (fewest feeds).
+// Each run picks the material with max Σ min(remaining[s], bonus[s]), then
+// post-prunes any unit whose removal still satisfies all constraints.
+function multiStartGreedy(cands, solvable) {
+  const nc = cands.length;
+
+  function oneRun(forcedFirst) {
+    const rem = [...solvable];
+    const x = new Array(nc).fill(0);
+    if (forcedFirst >= 0) {
+      x[forcedFirst]++;
+      const b = cands[forcedFirst];
+      for (let s = 0; s < 8; s++) rem[s] = Math.max(rem[s] - (b[2 + s] || 0), 0);
+    }
+    for (let iter = 0; iter < 2000; iter++) {
+      if (rem.every(r => r <= 0)) break;
+      let bestIdx = -1, bestRed = 0;
+      for (let mi = 0; mi < nc; mi++) {
+        let red = 0;
+        for (let s = 0; s < 8; s++) red += Math.min(rem[s], cands[mi][2 + s] || 0);
+        if (red > bestRed) { bestRed = red; bestIdx = mi; }
+      }
+      if (bestIdx < 0) break;
+      x[bestIdx]++;
+      for (let s = 0; s < 8; s++) rem[s] = Math.max(rem[s] - (cands[bestIdx][2 + s] || 0), 0);
+    }
+    // Post-prune: remove any unit still satisfying constraints
+    const surplus = new Array(8).fill(0);
+    for (let mi = 0; mi < nc; mi++)
+      for (let s = 0; s < 8; s++) surplus[s] += x[mi] * (cands[mi][2 + s] || 0);
+    for (let s = 0; s < 8; s++) surplus[s] -= solvable[s];
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (let mi = 0; mi < nc; mi++) {
+        if (x[mi] === 0) continue;
+        if (surplus.every((sv, s) => sv >= (cands[mi][2 + s] || 0))) {
+          x[mi]--;
+          for (let s = 0; s < 8; s++) surplus[s] -= (cands[mi][2 + s] || 0);
+          changed = true;
+        }
+      }
+    }
+    return x;
+  }
+
+  let bestX = oneRun(-1);
+  let bestTotal = bestX.reduce((t, v) => t + v, 0);
+  for (let fi = 0; fi < nc; fi++) {
+    // Skip if this material has no useful reduction on current needs
+    let red = 0;
+    for (let s = 0; s < 8; s++) red += Math.min(solvable[s], cands[fi][2 + s] || 0);
+    if (red === 0) continue;
+    const x = oneRun(fi);
+    const total = x.reduce((t, v) => t + v, 0);
+    if (total < bestTotal) { bestTotal = total; bestX = x; }
+  }
+  return bestX;
+}
+
 // ─── Core tier solver (LP pre-solve + memoized B&B) ──────────────────────────
 // Solves: minimize total feeds from cands[] s.t. each stat's needed[] is covered.
 // Returns { feedCounts:{name->count}, totalFeeds, pointsAdded:[8] }
@@ -140,8 +202,14 @@ export function solveTier(cands, needed) {
     }
   }
 
-  const finalX = [...initX];
-  let finalTotal = finalX.reduce((t, v) => t + v, 0);
+  // Run multi-start greedy and take the better of the two constructions.
+  const greedyX = multiStartGreedy(cands, solvable);
+  const greedyTotal = greedyX.reduce((t, v) => t + v, 0);
+  const lpTotal = initX.reduce((t, v) => t + v, 0);
+  const useGreedy = greedyTotal < lpTotal;
+
+  const finalX = useGreedy ? greedyX : [...initX];
+  let finalTotal = useGreedy ? greedyTotal : lpTotal;
 
   // Only run B&B for small instances — LP+greedy is near-optimal for large ones.
   // For large finalTotal the DFS search space explodes and provides negligible gain.
