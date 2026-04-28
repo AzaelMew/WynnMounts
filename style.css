@@ -634,7 +634,7 @@ button:active { transform: scale(0.97); }
 }
 
 /* smooth shift: padding-right grows as viewport narrows to keep sidebar from overlapping */
-body { padding-right: clamp(16px, calc(1820px - 100vw), 492px); }
+body { padding-right: clamp(16px, calc(1856px - 100vw), 492px); }
 
 @media (max-width: 800px) {
   body { padding-right: 16px; }
